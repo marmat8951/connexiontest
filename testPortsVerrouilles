@@ -1,0 +1,44 @@
+#!/bin/bash
+rm good.png 1>/dev/null 2>&1
+portDebut=1
+portFin=65535
+#regexprIntervNbr=[1-9][0-9]*-[1-9][0-9]*
+
+if expr $# = 2  1>/dev/null 2>&1
+then
+    if [[ $1 =~ [1-9][0-9]* ]]
+    then
+	portDebut=$1
+    else
+	echo "$1 n'est pas un nombre valable" && exit 1
+    fi
+    
+    if [[ $2 =~  [1-9][0-9]* ]]
+    then
+	portFin=$2
+    else
+	echo "$2 n'est pas un nombre valable" && exit 1
+    fi
+ 
+elif expr $# = 1 1>/dev/null 2>&1
+then
+    if [[ $1 =~ [1-9][0-9]*-[1-9][0-9]* ]]
+    then
+	portDebut=echo $1|cut -d '-' -f 1
+	portFin=echo $1|cut -d '-' -f 2
+    elif [[ $1 =~ [1-9][0-9]* ]]
+    then
+        portDebut=$1
+    else
+        echo "$2 n'est pas un nombre valable"
+    fi
+fi
+
+for port in $(seq $portDebut $portFin)
+do
+echo "test du port: ${port}"
+wget -q --no-cache http://neutral-http.aquilenet.fr:${port}/good.png || ( echo ${port}": non ouvert" 1>> anomalie && echo -e "${port}\e[0;31m n'est pas ouvert\e[0m")
+echo "verification de l'intégrité du fichier"
+diff good.png mediatest/good.png 1>/dev/null 2>&1 || (echo -e ${port}":\e[0;31m présente des modifications de fichier\e[0m" && echo ${port}:"modifications de fichier" 1>> anomalies )
+rm good.png
+done
