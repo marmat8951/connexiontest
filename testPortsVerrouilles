@@ -37,8 +37,18 @@ fi
 for port in $(seq $portDebut $portFin)
 do
 echo "test du port: ${port}"
-wget -q --no-cache http://neutral-http.aquilenet.fr:${port}/good.png || ( echo ${port}": non ouvert" 1>> anomalie && echo -e "${port}\e[0;31m n'est pas ouvert\e[0m")
+wget --report-speed=bits --no-cache http://neutral-http.aquilenet.fr:${port}/good.png  -a /tmp/dlinfo || ( echo ${port}": non ouvert" 1>> anomalie && echo -e "${port}\e[0;31m n'est pas ouvert\e[0m")
 echo "verification de l'intégrité du fichier"
-diff good.png mediatest/good.png 1>/dev/null 2>&1 || (echo -e ${port}":\e[0;31m présente des modifications de fichier\e[0m" && echo ${port}:"modifications de fichier" 1>> anomalies )
+(diff good.png mediatest/good.png 1>/dev/null 2>&1 && echo ok) || (echo -e ${port}":\e[0;31m présente des modifications de fichier\e[0m" && echo ${port}:"modifications de fichier" 1>> anomalies )
 rm good.png
 done
+
+#TODO a continuer verification d'une possible anomalie de débit
+#Il faudrait pour cela un fichier plus important en taille.
+#moyenne=0
+#nbports=$(expr $portFin - $portDebut 1> /dev/null 2>/dev/null)
+#echo "verification anomalie de débit"
+#cat /tmp/dlinfo | grep /s
+
+
+
