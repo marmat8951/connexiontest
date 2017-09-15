@@ -12,14 +12,14 @@ then
     else
 	echo "$1 n'est pas un nombre valable" && exit 1
     fi
-    
+
     if [[ $2 =~  [1-9][0-9]* ]]
     then
 	portFin=$2
     else
 	echo "$2 n'est pas un nombre valable" && exit 1
     fi
- 
+
 elif expr $# = 1 1>/dev/null 2>&1
 then
     if [[ $1 =~ [1-9][0-9]*-[1-9][0-9]* ]]
@@ -36,11 +36,15 @@ fi
 
 for port in $(seq $portDebut $portFin)
 do
+res="0"
 echo "test du port: ${port}"
-wget --report-speed=bits --no-cache http://neutral-http.aquilenet.fr:${port}/good.png  -a /tmp/dlinfo || ( echo ${port}": non ouvert" 1>> anomalie && echo -e "${port}\e[0;31m n'est pas ouvert\e[0m")
+wget --report-speed=bits -t 2 -T 3 --no-cache http://neutral-http.aquilenet.fr:${port}/good.png  -a /tmp/dlinfo || ( echo ${port}": non ouvert" 1>> anomalie && echo -e "${port}\e[0;31m n'est pas ouvert\e[0m") && res="1"
+if [ $res = "0" ]
+then
 echo "verification de l'intégrité du fichier"
-(diff good.png mediatest/good.png 1>/dev/null 2>&1 && echo ok) || (echo -e ${port}":\e[0;31m présente des modifications de fichier\e[0m" && echo ${port}:"modifications de fichier" 1>> anomalies )
+(diff good.png mediatest/good.png 1>/dev/null 2>&1 && echo ok) || (echo -e ${port}":\e[0;31m présente des modifications de fichier\e[0m" && echo ${port}:"modifications de fichier" 1>> anomalies)
 rm good.png
+fi
 done
 
 #TODO a continuer verification d'une possible anomalie de débit
